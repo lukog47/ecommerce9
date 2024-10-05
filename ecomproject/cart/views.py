@@ -13,7 +13,6 @@ def _cart_id(request):
 
 
 def add_cart(request, product_id):
-    # Use get_object_or_404 to handle non-existent products gracefully
     product = get_object_or_404(Product, id=product_id)
 
     try:
@@ -27,30 +26,15 @@ def add_cart(request, product_id):
         if cart_item.quantity < cart_item.product.stock:
             cart_item.quantity += 1
             cart_item.save()
-            # Reduce the product stock
             product.stock -= 1
             product.save()
     except CartItem.DoesNotExist:
         cart_item = CartItem.objects.create(product=product, quantity=1, cart=cart)
         cart_item.save()
-        # Reduce the product stock
         product.stock -= 1
         product.save()
 
     return redirect('cart:cart_detail')
-
-
-# def cart_detail(request, total=0, counter=0, cart_items=None):
-#     try:
-#         cart = Cart.objects.get(cart_id=_cart_id(request))
-#         cart_items = CartItem.objects.filter(cart=cart, active=True)
-#         for cart_item in cart_items:
-#             total += (cart_item.product.price * cart_item.quantity)
-#             counter += cart_item.quantity
-#     except ObjectDoesNotExist:
-#         cart_items = []
-#
-#     return render(request, 'cart.html', dict(cart_items=cart_items, total=total, counter=counter))
 
 
 def cart_detail(request, total=0, counter=0, cart_items=None):
@@ -78,7 +62,7 @@ def cart_remove(request, product_id):
     if cart_item.quantity > 1:
         cart_item.quantity -= 1
         cart_item.save()
-        # Increase the product stock
+    
         product.stock += 1
         product.save()
     else:
@@ -93,7 +77,6 @@ def full_remove(request, product_id):
     cart_item = CartItem.objects.get(product=product, cart=cart)
 
     cart_item.delete()
-    # Increase the product stock when removing
     product.stock += cart_item.quantity
     product.save()
 
